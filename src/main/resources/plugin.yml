@@ -1,0 +1,67 @@
+name: QuickGuard
+version: '${project.version}'
+main: dev.quickguard.QuickGuard
+api-version: '1.21'
+description: Anti-cheat with automatic bans, built to avoid false positives, plus basic moderation commands
+# Load before Essentials so the moderation commands below are used instead of Essentials' own
+loadbefore: [Essentials]
+softdepend: [floodgate]
+commands:
+  quickguard:
+    description: QuickGuard admin command
+    usage: /quickguard <reload|status|info <player>>
+    aliases: [qg]
+    permission: quickguard.admin
+  ban:
+    description: Permanently ban a player
+    usage: /ban <player> [reason]
+    permission: quickguard.mod
+  tempban:
+    description: Ban a player for a set time
+    usage: /tempban <player> <time> [reason]
+    permission: quickguard.mod
+  unban:
+    description: Unban a player
+    usage: /unban <player>
+    aliases: [pardon]
+    permission: quickguard.mod
+  kick:
+    description: Kick a player
+    usage: /kick <player> [reason]
+    permission: quickguard.mod
+  mute:
+    description: Mute a player in chat
+    usage: /mute <player> [time] [reason]
+    permission: quickguard.mod
+  unmute:
+    description: Unmute a player
+    usage: /unmute <player>
+    permission: quickguard.mod
+  warn:
+    description: Warn a player
+    usage: /warn <player> [reason]
+    permission: quickguard.mod
+  warnings:
+    description: See a player's warnings
+    usage: /warnings <player>
+    permission: quickguard.mod
+  freeze:
+    description: Freeze or unfreeze a player (owner only)
+    usage: /freeze <player>
+    permission: quickguard.owner
+permissions:
+  quickguard.bypass:
+    description: Skip every QuickGuard check (give this to staff who aren't op)
+    default: op
+  quickguard.alerts:
+    description: See staff alerts when someone is flagged
+    default: op
+  quickguard.admin:
+    description: Use /quickguard
+    default: op
+  quickguard.mod:
+    description: Use the moderation commands (ban, kick, mute, warn, freeze...)
+    default: op
+  quickguard.owner:
+    description: Owner-only commands (/freeze). Nobody has this by default, not even ops - grant it with LuckPerms.
+    default: false

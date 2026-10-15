@@ -1,0 +1,159 @@
+# QuickGuard config. Colors: &a &c &b etc. Placeholders: {player} {check} {detail} {action} {reason} {discord}
+#
+# Every check has an "action":
+#   BAN   = ban the player (shows the ban message below) and kick them
+#   KICK  = kick only
+#   ALERT = only tell staff (permission quickguard.alerts) and write it to flags.log
+#
+# Everything that gets flagged is written to plugins/QuickGuard/flags.log with a location,
+# so you can check a ban when someone appeals.
+#
+# Ops and anyone with the permission quickguard.bypass are never checked.
+
+discord: "https://discord.gg/2umFzxVxGf"
+
+# 0 = permanent for automatic bans, otherwise number of days
+ban-duration-days: 0
+
+# Bedrock (Geyser/Floodgate) players move and fight a little differently, so they skip the movement and combat
+# checks. The gamemode check, moderation commands and bans always include Bedrock players.
+ignore-bedrock: true
+
+# Non-op players who log in while in creative/spectator are set back to survival (not banned)
+fix-gamemode-on-join: true
+
+# Used for every ban, including /ban and /tempban from staff
+ban-message:
+  - "&cYou Have Been Banned For {reason}"
+  - "&cYou Can Appeal With a Ticket For Your Ban Below."
+  - "&b{discord}"
+
+kick-message:
+  - "&cYou Were Kicked For {reason}"
+  - "&cIf you think this was a mistake, open a ticket below."
+  - "&b{discord}"
+
+alert-format: "&c&lGuard &8» &b{player} &7flagged &e{check} &8[&7{action}&8] &7{detail}"
+
+moderation:
+  default-reason: "Breaking the rules"
+  muted-message: "&cYou are muted{expiry}. Reason: &f{reason}"
+  frozen-message: "&cYou have been frozen by the owner. Don't log out!"
+  # commands a muted player can't use
+  muted-blocked-commands: [msg, tell, w, whisper, r, reply, me, say, mail, m, t]
+
+# /freeze (owner only, needs the permission quickguard.owner): locks a player in place. They can't move,
+# use commands, place/break/drop/pick up anything, or hurt anyone, and nobody can hurt them.
+freeze:
+  ban-on-quit: true       # logging out while frozen = banned
+  quit-reason: "Logging Out While Frozen"
+  title: "&c&lFROZEN"
+  subtitle: "&7Do not log out"
+  actionbar: "&c&lFROZEN &7- logging out will get you banned"
+
+checks:
+  # ---------- things you asked for ----------
+
+  # A player who isn't op (and has no quickguard.bypass) ending up in creative or spectator.
+  # Works for Java AND Bedrock players, and it doesn't matter who caused it (the player, another plugin,
+  # or even the console). To let someone have creative on purpose, give them quickguard.bypass.
+  gamemode:
+    enabled: true
+    action: BAN
+    reason: "Illegal Gamemode"
+    modes: [CREATIVE, SPECTATOR]
+    # true = a /gamemode command from the console or an op is allowed to put a normal player in creative
+    allow-staff-commands: false
+    # the game applies a saved gamemode while someone logs in, so nothing is punished for this long after joining
+    login-grace-seconds: 10
+
+  # Moving much faster than the game allows, with no spear in hand, no elytra and no riptide trident
+  speed:
+    enabled: true
+    action: BAN
+    reason: "Speed Hacking"
+    max-speed: 20.0      # blocks per second (normal sprint-jumping is about 7-8)
+    strikes: 8           # seconds over the limit before a flag (lag spikes only last 1-2)
+
+  # Several rare ores in a row without ever mining another ore.
+  # Alert-only by default: someone who only digs for diamonds can look like this.
+  xray:
+    enabled: true
+    action: ALERT
+    reason: "X-Ray"
+    streak: 5
+    ores: [DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, ANCIENT_DEBRIS]
+    vein-radius: 6       # ores this close together count as one vein
+    window-minutes: 30   # a streak older than this is forgotten
+
+  # Hitting players from too far away.
+  # The game itself already refuses hits past about 4 blocks, so this looks at how far away
+  # hits land compared to the normal 3 blocks (plus a small allowance for lag).
+  # It bans when most of a player's recent hits land too far, not on a single hit.
+  reach:
+    enabled: true
+    action: BAN
+    reason: "Reach Hacking"
+    max-distance: 3.0
+    leniency: 0.35       # extra room for hitbox rounding
+    hits-window: 8       # look at the last 8 hits...
+    hits-needed: 5       # ...and flag when 5 of them were too far
+
+  # "Criticals" with no real jump: hitting while claiming to be falling but standing flat on the ground
+  criticals:
+    enabled: true
+    action: BAN
+    reason: "Fake Criticals"
+    strikes: 3
+    window-seconds: 30
+
+  # Spam-clicking while hitting a player (not possible by hand for several seconds in a row)
+  autoclicker:
+    enabled: true
+    action: BAN
+    reason: "Autoclicker"
+    clicks-per-second: 25
+    strikes: 3           # seconds in a row
+
+  # ---------- extra checks ----------
+
+  # Hitting players while looking nowhere near them, or hitting two players in the same tick
+  killaura:
+    enabled: true
+    action: BAN
+    reason: "Kill Aura"
+    max-angle: 75        # degrees between where you look and where the player is
+    hits-window: 6
+    hits-needed: 4
+    multi-target-strikes: 3
+    multi-target-window-seconds: 30
+
+  # Hovering or rising in mid-air with nothing under you
+  fly:
+    enabled: true
+    action: KICK
+    reason: "Flying"
+    seconds: 8
+
+  # Standing on top of water
+  jesus:
+    enabled: true
+    action: KICK
+    reason: "Walking On Water"
+    seconds: 4
+
+  # Breaking a huge number of blocks every second
+  fast-break:
+    enabled: true
+    action: ALERT
+    reason: "Nuker"
+    blocks-per-second: 25
+    strikes: 2
+
+  # Shooting full-power bow shots faster than a bow can charge
+  fast-bow:
+    enabled: true
+    action: ALERT
+    reason: "Fast Bow"
+    strikes: 3
+    window-seconds: 30
